@@ -171,13 +171,13 @@ class TypeScriptAnalyzer:
                 
         return results
     
-    def find_function_calls(self, function_name: str, extract_first_arg: bool = False) -> Dict[str, List[Dict]]:
+    def find_function_calls(self, function_name: str, extract_args: bool = False) -> Dict[str, List[Dict]]:
         """
-        Find all calls to a specific function.
+        Find all calls to a function with the given name.
         
         Args:
-            function_name: Name of the function
-            extract_first_arg: Whether to extract the first argument of each call
+            function_name: Name of the function to search for
+            extract_args: Whether to extract all arguments passed to the function
             
         Returns:
             Dictionary mapping file paths to lists of function call information
@@ -202,7 +202,7 @@ class TypeScriptAnalyzer:
                         with open(file_path, 'r', encoding='utf-8') as f:
                             content = f.read()
                             found_name = content[function_node.start_byte:function_node.end_byte]
-                            
+
                             # If the function name matches what we're looking for
                             if found_name == function_name or found_name.endswith('.' + function_name):
                                 call_info = {
@@ -211,13 +211,19 @@ class TypeScriptAnalyzer:
                                     'text': content[node.start_byte:node.end_byte].strip()
                                 }
                                 
-                                # Extract first argument if requested
-                                if extract_first_arg and len(node.children) > 1:
+                                # Extract arguments if requested
+                                if extract_args and len(node.children) > 1:
                                     # The arguments are usually in the second child (arguments node)
-                                    args_node = node.children[1]
-                                    if args_node.type == 'arguments' and args_node.children and len(args_node.children) > 0:
-                                        first_arg = args_node.children[0]
-                                        call_info['first_arg'] = content[first_arg.start_byte:first_arg.end_byte].strip()
+                                    args_node = next((child for child in node.children if child.type == 'arguments'), None)
+                                    if args_node and args_node.children and len(args_node.children) > 0:
+                                        # Extract only actual arguments, filtering out parentheses and commas
+                                        args = []
+                                        for arg in args_node.children:
+                                            # Skip parentheses and comma tokens, only include actual arguments
+                                            if arg.type not in ['(', ')', ',']:
+                                                args.append(content[arg.start_byte:arg.end_byte].strip())
+
+                                        call_info['args'] = args
                                 
                                 function_calls.append(call_info)
             
