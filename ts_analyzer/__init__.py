@@ -59,12 +59,13 @@ class TypeScriptAnalyzer:
         # Cache for parsed files
         self._parsed_files_cache = {}
     
-    def find_ts_files(self, include_tsx: bool = True) -> List[Path]:
+    def find_ts_files(self, include_tsx: bool = True, exclude_node_modules: bool = True) -> List[Path]:
         """
         Find all TypeScript files in the codebase.
         
         Args:
             include_tsx: Whether to include .tsx files
+            exclude_node_modules: Whether to exclude files in node_modules directories
         
         Returns:
             List of paths to TypeScript files
@@ -75,7 +76,13 @@ class TypeScriptAnalyzer:
             
         files = []
         for ext in extensions:
-            files.extend(self.codebase_root.glob(f"**/*{ext}"))
+            found_files = list(self.codebase_root.glob(f"**/*{ext}"))
+            
+            if exclude_node_modules:
+                # Filter out files from node_modules directories
+                found_files = [f for f in found_files if "node_modules" not in f.parts]
+                
+            files.extend(found_files)
         
         return files
     
@@ -301,15 +308,38 @@ class TypeScriptAnalyzer:
                     content = f.read()
                     content_bytes = bytes(content, 'utf-8')
                 
+                # Get all captures from the query
                 captures = query.captures(tree.root_node)
                 
-                for node, capture_name in captures:
-                    file_results.append({
-                        'capture': capture_name,
-                        'line': node.start_point[0] + 1,
-                        'column': node.start_point[1],
-                        'text': content[node.start_byte:node.end_byte]
-                    })
+                # Process the captures, handling different structures from different TreeSitter versions
+                for item in captures:
+                    # Handle tuple format (could be 2-tuple or 3-tuple depending on TreeSitter version)
+                    if isinstance(item, tuple):
+                        # We need at least a node and a capture name
+                        if len(item) >= 2:
+                            # First element is always the node
+                            node = item[0]
+                            
+                            # Second element is often the capture name in older versions
+                            # In newer versions, it might be the capture index, and the name is third
+                            if isinstance(item[1], str):
+                                capture_name = item[1]
+                            elif len(item) >= 3 and isinstance(item[2], str):
+                                capture_name = item[2]
+                            else:
+                                # Default if we can't find a string capture name
+                                capture_name = "unknown"
+                            
+                            file_results.append({
+                                'capture': capture_name,
+                                'line': node.start_point[0] + 1,
+                                'column': node.start_point[1],
+                                'text': content[node.start_byte:node.end_byte]
+                            })
+                    else:
+                        # Skip if it's not a tuple - likely a string or other unexpected format
+                        continue
+                        
             except Exception as e:
                 print(f"Error querying {file_path}: {e}")
                 continue
