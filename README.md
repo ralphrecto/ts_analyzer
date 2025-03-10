@@ -2,6 +2,8 @@
 
 A tool for analyzing TypeScript codebases using TreeSitter, designed to be used from a Jupyter notebook.
 
+*NOTE*: this is a work in progress. Expect it to be unstable. Use it at your own risk (for now).
+
 ## Features
 
 - Find all imports of specific classes or modules
