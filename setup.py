@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="mypackage",
+    name="ts_analyzer",
     version="0.1.0",
     packages=find_packages(),
     install_requires=[],
@@ -16,4 +16,4 @@ setup(
         "License :: OSI Approved :: MIT License",
     ],
     python_requires=">=3.6",
-) 
+)

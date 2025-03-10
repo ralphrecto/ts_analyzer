@@ -1,1 +1,4 @@
 temp/
+*.egg-info/
+vendor/
+.venv
