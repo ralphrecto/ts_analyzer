@@ -16,7 +16,7 @@ A tool for analyzing TypeScript codebases using TreeSitter, designed to be used 
 1. Install the required dependencies:
 
 ```bash
-pip install -r ts_analysis_requirements.txt
+pip install -r requirements.txt
 ```
 
 2. Clone the TreeSitter TypeScript grammar:
@@ -78,9 +78,3 @@ You can extend the `TypeScriptAnalyzer` class to add custom functionality specif
 ## Tree-sitter Query Language
 
 The Tree-sitter query language allows you to define complex patterns to search for in your code. More information can be found in the [Tree-sitter documentation](https://tree-sitter.github.io/tree-sitter/using-parsers#pattern-matching-with-queries).
-
-## Known Limitations
-
-- This is a lexical analyzer, not a semantic one. It doesn't understand types or the semantic meaning of code.
-- The analyzer relies on pattern matching, so there might be false positives or missed matches in complex code.
-- Very large codebases might require optimizations or chunking the analysis. 
