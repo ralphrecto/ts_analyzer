@@ -2,3 +2,4 @@ temp/
 *.egg-info/
 vendor/
 .venv
+notebooks/.ipynb_checkpoints/
